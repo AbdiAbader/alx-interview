@@ -1,35 +1,44 @@
 #!/usr/bin/python3
 """Log Parser"""
 import sys
-import re
-from collections import defaultdict
-
-
-def print_stats(file_size, status_codes):
-    """ Print statistics """
-    print(f"File size: {file_size}")
-    for key in sorted(status_codes.keys()):
-        if status_codes[key]:
-            print(f"{key}: {status_codes[key]}")
 
 
 if __name__ == '__main__':
-    file_size = 0
-    status_codes = defaultdict(int)
+    file_size = [0]
+    status_codes = {200: 0, 301: 0, 400: 0, 401: 0,
+                    403: 0, 404: 0, 405: 0, 500: 0}
 
+    def print_stats():
+        """ Print statistics """
+        print('File size: {}'.format(file_size[0]))
+        for key in sorted(status_codes.keys()):
+            if status_codes[key]:
+                print('{}: {}'.format(key, status_codes[key]))
+
+    def parse_line(line):
+        """ Checks the line for matches """
+        try:
+            line = line[:-1]
+            word = line.split(' ')
+            # File size is last parameter on stdout
+            file_size[0] += int(word[-1])
+            # Status code comes before file size
+            status_code = int(word[-2])
+            # Move through dictionary of status codes
+            if status_code in status_codes:
+                status_codes[status_code] += 1
+        except BaseException:
+            pass
+
+    linenum = 1
     try:
-        for i, line in enumerate(sys.stdin, start=1):
-            match = re.match(r'^.* (\d+) (\d+)$', line)
-            if not match:
-                continue
-            status_code, size = match.groups()
-            status_code = int(status_code)
-            size = int(size)
-            file_size += size
-            status_codes[status_code] += 1
-            if i % 10 == 0:
-                print_stats(file_size, status_codes)
+        for line in sys.stdin:
+            parse_line(line)
+            """ print after every 10 lines """
+            if linenum % 10 == 0:
+                print_stats()
+            linenum += 1
     except KeyboardInterrupt:
-        print_stats(file_size, status_codes)
+        print_stats()
         raise
-    print_stats(file_size, status_codes)
+    print_stats()
