@@ -1,50 +1,54 @@
 #!/usr/bin/python3
 import sys
 
-file_size = 0
-status_codes = {200: 0, 301: 0, 400: 0, 401: 0, 403: 0, 404: 0, 405: 0, 500: 0}
-line_count = 0
+def compute_stats(lines):
+    # Initialize variables
+    total_size = 0
+    status_counts = {200: 0, 301: 0, 400: 0, 401: 0, 403: 0, 404: 0, 405: 0, 500: 0}
 
-def print_statistics():
-    """Prints the statistics for file size and status codes."""
-    print("File size: {}".format(file_size))
-    for status_code in sorted(status_codes.keys()):
-        if status_codes[status_code]:
-            print("{}: {}".format(status_code, status_codes[status_code]))
-
-try:
-    for line in sys.stdin:
-        line = line.strip()
-
+    # Process each line
+    for i, line in enumerate(lines):
         # Parse the line
         try:
-            ip, _, _, timestamp, _, request, status_code, file_size = line.split()
-            status_code = int(status_code)
-            file_size = int(file_size)
-
-            # Check that the request is for /projects/260
+            _, _, _, _, _, request, status, size, _ = line.split()
             if request != 'GET /projects/260 HTTP/1.1':
                 continue
-
-            # Increment the status code count
-            if status_code in status_codes:
-                status_codes[status_code] += 1
-
-            # Add the file size to the total
-            file_size += file_size
-            line_count += 1
-
-            # Print the statistics every 10 lines
-            if line_count % 10 == 0:
-                print_statistics()
-
-        # Skip any lines that do not match the expected format
+            size = int(size)
+            status = int(status)
         except ValueError:
+            # Skip lines that don't match the format
             continue
 
-# Handle keyboard interrupts (CTRL+C)
-except KeyboardInterrupt:
-    print_statistics()
-    raise
+        # Update metrics
+        total_size += size
+        if status in status_counts:
+            status_counts[status] += 1
 
-print_statistics()
+        # Print stats every 10 lines or at end of input
+        if (i + 1) % 10 == 0 or i == len(lines) - 1:
+            print(f'Total file size: {total_size}')
+            for status_code in sorted(status_counts.keys()):
+                if status_counts[status_code]:
+                    print(f'{status_code}: {status_counts[status_code]}')
+
+if __name__ == '__main__':
+    lines = []
+    try:
+        # Read input from stdin
+        for line in sys.stdin:
+            lines.append(line.strip())
+
+            # Process lines every 10 lines
+            if len(lines) == 10:
+                compute_stats(lines)
+                lines = []
+
+        # Process any remaining lines
+        if len(lines) > 0:
+            compute_stats(lines)
+
+    except KeyboardInterrupt:
+        # Handle keyboard interrupt (CTRL+C)
+        if len(lines) > 0:
+            compute_stats(lines)
+        raise
