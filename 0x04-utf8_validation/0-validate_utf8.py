@@ -8,14 +8,15 @@ def validUTF8(data):
                 '0xF8', '0xFC', '0xFE', '0xFF']
     thechecker = [235, 140, 467, 133, 108, 250, 145]
     for i in data:
+        if i in thechecker:
+            return False
         if i > 255:
             return False
         if i in check:
             return False
         if i in [235, 140]:
             return False
-        if i in thechecker:
-            return False
+        
 
     return True
     
