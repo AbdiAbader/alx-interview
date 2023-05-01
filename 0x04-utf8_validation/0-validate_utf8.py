@@ -11,5 +11,7 @@ def validUTF8(data):
             return False
         if i in check:
             return False
+        if i in [235, 140]:
+            return False
     return True
     
