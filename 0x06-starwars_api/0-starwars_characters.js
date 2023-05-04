@@ -3,7 +3,7 @@
 // The first argument is the Movie ID - example: 3 = “Return of the Jedi”
 const req = require('request');
 const { promisify } = require('util');
-const urls = 'https://swapi-api.hbtn.io/api/films/' + process.argv[2];
+const urls = 'https://swapi-api.alx-tools.com/api/' + process.argv[2];
 
 (async () => {
   try {
